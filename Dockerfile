@@ -78,6 +78,12 @@ RUN --mount=type=cache,target=/tmp/ruff-install \
 RUN --mount=type=cache,target=/tmp/dagger-install \
     curl -L https://dl.dagger.io/dagger/install.sh | sh
 
+# install golang 1.24
+RUN --mount=type=cache,target=/tmp/go-install \
+    curl -LO https://go.dev/dl/go1.24.linux-amd64.tar.gz \
+    && tar -C /usr/local -xzf go1.24.linux-amd64.tar.gz \
+    && rm go1.24.linux-amd64.tar.gz
+
 # final stage - user setup and configuration
 FROM tools-installer AS final
 
@@ -94,8 +100,8 @@ RUN groupadd --gid $GID hacker \
 USER hacker
 WORKDIR /home/hacker
 
-# add astral tools to path
-ENV PATH="/home/hacker/.cargo/bin:/home/hacker/.local/bin:$PATH"
+# add astral tools and go to path
+ENV PATH="/home/hacker/.cargo/bin:/home/hacker/.local/bin:/usr/local/go/bin:$PATH"
 
 # install oh-my-zsh
 RUN --mount=type=cache,target=/tmp/oh-my-zsh,uid=$UID,gid=$GID \
@@ -114,7 +120,9 @@ RUN --mount=type=cache,target=/tmp/zsh-plugins,uid=$UID,gid=$GID \
 # configure zsh with useful plugins and aliases
 RUN sed -i 's/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting fzf)/' ~/.zshrc \
     && echo 'export EDITOR=vim' >> ~/.zshrc \
-    && echo 'export PATH="/home/hacker/.cargo/bin:/home/hacker/.local/bin:$PATH"' >> ~/.zshrc \
+    && echo 'export PATH="/home/hacker/.cargo/bin:/home/hacker/.local/bin:/usr/local/go/bin:$PATH"' >> ~/.zshrc \
+    && echo 'export GOPATH="/home/hacker/go"' >> ~/.zshrc \
+    && echo 'export PATH="$GOPATH/bin:$PATH"' >> ~/.zshrc \
     && echo 'alias ll="ls -la"' >> ~/.zshrc \
     && echo 'alias k="kubectl"' >> ~/.zshrc \
     && echo 'alias d="docker"' >> ~/.zshrc \
@@ -131,7 +139,7 @@ RUN echo 'set number' > ~/.vimrc \
     && echo 'set smartindent' >> ~/.vimrc
 
 # create workspace directory that will be mounted from host
-RUN mkdir -p /home/hacker/workspace
+RUN mkdir -p /home/hacker/workspace /home/hacker/go
 
 # set default working directory
 WORKDIR /home/hacker/workspace
