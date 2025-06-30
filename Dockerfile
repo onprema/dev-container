@@ -78,11 +78,11 @@ RUN --mount=type=cache,target=/tmp/ruff-install \
 RUN --mount=type=cache,target=/tmp/dagger-install \
     curl -L https://dl.dagger.io/dagger/install.sh | sh
 
-# install golang 1.24
+# install golang 1.24.4
 RUN --mount=type=cache,target=/tmp/go-install \
-    curl -LO https://go.dev/dl/go1.24.linux-amd64.tar.gz \
-    && tar -C /usr/local -xzf go1.24.linux-amd64.tar.gz \
-    && rm go1.24.linux-amd64.tar.gz
+    curl -LO https://go.dev/dl/go1.24.4.linux-amd64.tar.gz \
+    && tar -C /usr/local -xzf go1.24.4.linux-amd64.tar.gz \
+    && rm go1.24.4.linux-amd64.tar.gz
 
 # final stage - user setup and configuration
 FROM tools-installer AS final
